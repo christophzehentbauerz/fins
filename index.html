@@ -1,14 +1,694 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marathon Intelligence Platform</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Vite + React + TS</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        },
+                        dark: {
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-dark-900 text-slate-100 h-screen overflow-hidden flex">
+
+    <!-- Sidebar -->
+    <aside class="w-64 border-r border-slate-800 flex flex-col transition-all hidden md:flex">
+        <div class="p-6 border-b border-slate-800">
+            <h1 class="text-xl font-bold bg-gradient-to-r from-brand-400 to-brand-600 bg-clip-text text-transparent">
+                MIP Platform
+            </h1>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-2">
+            <button onclick="switchView('dashboard')"
+                class="w-full flex items-center gap-3 px-4 py-3 bg-brand-600/10 text-brand-400 rounded-xl border border-brand-500/20 active-nav"
+                id="nav-dashboard">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                    </path>
+                </svg>
+                <span class="font-medium">Dashboard</span>
+            </button>
+            <button onclick="switchView('plan')"
+                class="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+                id="nav-plan">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                    </path>
+                </svg>
+                <span class="font-medium">Training Plan</span>
+            </button>
+            <button onclick="switchView('analysis')"
+                class="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+                id="nav-analysis">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                    </path>
+                </svg>
+                <span class="font-medium">Analysis</span>
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-slate-800">
+            <div class="flex items-center gap-3 px-4 py-3">
+                <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-sm font-bold">AK
+                </div>
+                <div>
+                    <div class="text-sm font-medium text-white">Anna K.</div>
+                    <div class="text-xs text-slate-500">Berlin '26</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto bg-dark-900 relative">
+        <header
+            class="h-20 border-b border-slate-800 flex items-center justify-between px-8 bg-dark-900/50 backdrop-blur-md sticky top-0 z-10">
+            <div>
+                <h2 class="text-xl font-bold text-white" id="page-title">Berlin Marathon '26</h2>
+                <div class="flex items-center gap-4 text-sm mt-1">
+                    <span class="text-slate-400">Target: <span class="text-white font-medium">Sep 27</span></span>
+                    <span class="text-slate-600">|</span>
+                    <span class="text-slate-400">Goal: <span class="text-brand-400 font-bold">3:59:00</span></span>
+                    <span class="text-slate-600">|</span>
+                    <span class="text-slate-400">Prognosis: <span class="text-emerald-400 font-bold"
+                            id="prognosis-display">4:12:30</span></span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="relative group">
+                    <button onclick="syncStrava()" id="strava-btn"
+                        class="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-medium text-slate-300 transition-colors border border-slate-700">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                            </path>
+                        </svg>
+                        Sync Strava
+                    </button>
+                    <span
+                        class="absolute -top-1 -right-1 px-1.5 py-0.5 bg-amber-500 text-[8px] font-bold text-black rounded">DEMO</span>
+                    <!-- Tooltip -->
+                    <div
+                        class="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-48 px-3 py-2 bg-dark-900 text-xs text-slate-300 rounded-lg border border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 text-center shadow-xl">
+                        Simuliert eine Strava API-Verbindung für Demo-Zwecke.
+                    </div>
+                </div>
+                <div class="h-8 w-px bg-slate-800"></div>
+                <span
+                    class="px-3 py-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded-full text-xs font-medium">Prototyp</span>
+            </div>
+        </header>
+
+        <div class="p-8 pb-32 max-w-7xl mx-auto space-y-8">
+
+            <!-- VIEW: DASHBOARD -->
+            <div id="view-dashboard" class="space-y-8">
+                <!-- Hero Section: Stats Grid -->
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Readiness Score Card -->
+                    <div
+                        class="bg-dark-800 rounded-2xl p-6 border border-slate-700 shadow-xl relative overflow-hidden group hover:border-brand-500/50 transition-colors">
+                        <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Daily Readiness</h3>
+                        <div class="flex items-end gap-3 mb-2">
+                            <span class="text-5xl font-bold text-white tracking-tighter" id="score-display">94</span>
+                            <span class="text-sm text-emerald-400 font-medium mb-1">Optimal Recovery</span>
+                        </div>
+                    </div>
+
+                    <!-- Marathon Shape Card -->
+                    <div
+                        class="bg-dark-800 rounded-2xl p-6 border border-slate-700 shadow-xl relative overflow-hidden group hover:border-purple-500/50 transition-colors">
+                        <div class="absolute top-0 right-0 p-4 opacity-50">
+                            <svg class="w-16 h-16 text-purple-900/20" fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Marathon Shape</h3>
+                        <div class="flex items-end gap-3 mb-2">
+                            <span class="text-5xl font-bold text-white tracking-tighter" id="shape-display">68</span>
+                            <span class="text-sm text-purple-400 font-medium mb-1">/ 100</span>
+                        </div>
+                        <div class="w-full bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                            <div class="bg-purple-500 h-full rounded-full" style="width: 68%" id="shape-bar"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-dark-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
+                        <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Current Phase</h3>
+                        <div class="text-2xl font-bold text-white mb-1">Base Building</div>
+                        <p class="text-xs text-slate-500">4 weeks remaining in phase</p>
+                    </div>
+
+                    <div class="bg-dark-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
+                        <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Weekly Volume</h3>
+                        <div class="text-2xl font-bold text-white mb-1">42.5 km</div>
+                        <p class="text-xs text-emerald-400">On track for 45km</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Training Schedule List (Existing) -->
+                    <div class="lg:col-span-2 bg-dark-800 rounded-2xl border border-slate-700 overflow-hidden">
+                        <div
+                            class="p-6 border-b border-slate-700 flex justify-between items-center bg-dark-800 sticky top-0">
+                            <h3 class="text-white font-bold text-lg">Training Schedule</h3>
+                            <button onclick="syncCalendar()"
+                                class="text-xs flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                    </path>
+                                </svg>
+                                Link Google Cal
+                            </button>
+                        </div>
+                        <div class="divide-y divide-slate-700/50" id="training-list">
+                            <div class="p-4 flex items-center gap-4 hover:bg-slate-700/20 transition-colors opacity-50">
+                                <div class="w-6 flex justify-center"><svg class="w-5 h-5 text-emerald-500" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 13l4 4L19 7"></path>
+                                    </svg></div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-bold text-slate-300 line-through">Mon: Easy Run (6km)</div>
+                                    <div class="text-xs text-slate-500">Completed @ 5:55/km</div>
+                                </div>
+                            </div>
+                            <div class="p-4 flex items-center gap-4 bg-brand-900/10 border-l-4 border-brand-500"
+                                id="today-item">
+                                <div class="w-6 flex justify-center">
+                                    <input type="checkbox" onchange="markComplete(this, 'today')"
+                                        class="w-5 h-5 rounded border-slate-600 bg-dark-700 text-brand-600 focus:ring-brand-500 cursor-pointer">
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <div class="font-bold text-white text-lg">Tue: Threshold Intervals</div>
+                                            <div class="text-sm text-brand-200">12 km · Target 4:45/km</div>
+                                        </div>
+                                        <span
+                                            class="px-2 py-1 bg-brand-500/20 text-brand-400 rounded text-xs px-2 font-bold">KEY</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-4 flex items-center gap-4 hover:bg-slate-700/20 transition-colors">
+                                <div class="w-6 flex justify-center">
+                                    <div class="w-5 h-5 rounded border border-slate-600"></div>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-medium text-slate-300">Wed: Recovery Run (8km)</div>
+                                    <div class="text-xs text-slate-500">Z1/Z2 easy effort</div>
+                                </div>
+                            </div>
+                            <div
+                                class="p-3 bg-slate-800/50 hover:bg-slate-800 cursor-pointer text-center text-sm text-slate-400 hover:text-white transition-colors border-t border-dashed border-slate-700">
+                                + Add Personal Appointment / Block Time
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trends Chart -->
+                    <div class="bg-dark-800 rounded-2xl p-6 border border-slate-700 lg:col-span-1 flex flex-col">
+                        <h3 class="text-slate-400 text-sm font-medium uppercase tracking-wider mb-6">Load vs Readiness
+                        </h3>
+                        <div class="flex-1 w-full min-h-[200px]">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- End Dashboard View -->
+
+            <!-- VIEW: PLAN (New - Modernized) -->
+            <div id="view-plan" class="hidden space-y-8">
+                <div class="flex justify-between items-end">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">October 2026</h2>
+                        <p class="text-slate-400 text-sm">Base Phase - Week 4 of 16</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button
+                            class="p-2 bg-dark-800 rounded-full text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">
+                            << /button>
+                                <button
+                                    class="p-2 bg-dark-800 rounded-full text-slate-400 hover:text-white hover:bg-slate-700 transition-colors">></button>
+                    </div>
+                </div>
+
+                <div
+                    class="grid grid-cols-7 gap-4 text-center text-xs text-slate-500 uppercase font-bold tracking-widest mb-4">
+                    <div>Mon</div>
+                    <div>Tue</div>
+                    <div>Wed</div>
+                    <div>Thu</div>
+                    <div>Fri</div>
+                    <div>Sat</div>
+                    <div>Sun</div>
+                </div>
+
+                <div class="grid grid-cols-7 gap-2 min-h-[500px]">
+                    <!-- Mock Calendar Days (Modern "Air" Design) -->
+                    <div class="p-3 text-slate-600 opacity-30">28</div>
+                    <div class="p-3 relative group hover:bg-dark-800 rounded-xl transition-colors">
+                        <div class="text-slate-400 text-sm font-medium mb-2">29</div>
+                        <div class="flex justify-center">
+                            <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]">
+                            </div>
+                        </div>
+                        <div
+                            class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max px-3 py-1 bg-dark-900 text-white text-xs rounded border border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                            Easy 6k (Completed)
+                        </div>
+                    </div>
+
+                    <div
+                        class="p-3 relative bg-dark-800/50 rounded-xl border border-brand-500/20 shadow-lg shadow-brand-900/10">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-white font-bold text-sm">30</span>
+                            <span
+                                class="text-[10px] uppercase font-bold text-brand-400 bg-brand-500/10 px-1.5 py-0.5 rounded">Today</span>
+                        </div>
+                        <div class="text-xs text-slate-300 font-medium">Intervals</div>
+                        <div class="mt-2 h-1 w-8 bg-brand-500 rounded-full"></div>
+                    </div>
+
+                    <div class="p-3 relative group hover:bg-dark-800 rounded-xl transition-colors">
+                        <div class="text-slate-400 text-sm font-medium mb-2">01</div>
+                        <div class="text-xs text-slate-500">Recov 8k</div>
+                    </div>
+                    <!-- ... placeholders ... -->
+                    <div class="p-3 text-slate-500">02</div>
+                    <div class="p-3 text-slate-500">03</div>
+                    <div class="p-3 relative group hover:bg-dark-800 rounded-xl transition-colors">
+                        <div class="text-slate-400 text-sm font-medium mb-2">04</div>
+                        <div class="text-xs text-slate-400 font-bold">Long Run 22k</div>
+                        <div class="mt-1 h-1 w-full bg-slate-700 rounded-full overflow-hidden">
+                            <div class="bg-purple-500 w-3/4 h-full"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: ANALYSIS (New - Advanced Readiness) -->
+            <div id="view-analysis" class="hidden space-y-8">
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Breakdown (Radar) -->
+                    <div
+                        class="lg:col-span-1 bg-dark-800 rounded-2xl p-6 border border-slate-700 shadow-xl flex flex-col">
+                        <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-4">Readiness Breakdown
+                        </h3>
+                        <div class="flex-1 relative min-h-[300px]">
+                            <canvas id="readinessRadarChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Coach's Insight (Text) -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- Feedback Loop / Algorithm Output -->
+                        <div
+                            class="bg-gradient-to-br from-dark-800 to-dark-900 border border-slate-700 rounded-2xl p-8 shadow-xl">
+                            <div class="flex items-center gap-4 mb-6">
+                                <div
+                                    class="w-12 h-12 rounded-full bg-brand-500/10 flex items-center justify-center text-brand-500">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-white">Algorithmic Insight</h3>
+                                    <p class="text-slate-400 text-sm">Based on 5-Factor Elite Analysis</p>
+                                </div>
+                            </div>
+
+                            <p class="text-lg text-slate-300 leading-relaxed" id="coach-insight-text">
+                                <span class="text-emerald-400 font-bold">Waiting for data...</span> Sync your Strava
+                                device to calculate your specific readiness score based on volume and efficiency.
+                            </p>
+
+                            <div class="mt-6 flex gap-4">
+                                <div
+                                    class="px-4 py-2 bg-slate-800 rounded-lg text-xs text-slate-400 border border-slate-700">
+                                    <span class="block text-slate-500 uppercase text-[10px] font-bold">Compliance</span>
+                                    92%
+                                </div>
+                                <div
+                                    class="px-4 py-2 bg-slate-800 rounded-lg text-xs text-slate-400 border border-slate-700">
+                                    <span class="block text-slate-500 uppercase text-[10px] font-bold">Est. VO2
+                                        Max</span>
+                                    58
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Drop Zone (Secondary) -->
+                        <div
+                            class="border-2 border-dashed border-slate-800 hover:border-slate-600 rounded-2xl p-8 text-center transition-colors cursor-pointer">
+                            <p class="text-slate-500 text-sm">Or drop manual .FIT files here for deep inspection</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Table (Bottom) -->
+                <!-- Activity Table -->
+                <div class="bg-dark-800 rounded-xl border border-slate-700 overflow-hidden mb-8">
+                    <table class="w-full text-left text-sm text-slate-400">
+                        <thead class="bg-slate-800 text-slate-200 uppercase font-bold">
+                            <tr>
+                                <th class="p-4">Date</th>
+                                <th class="p-4">Activity</th>
+                                <th class="p-4">Distance</th>
+                                <th class="p-4">Pace</th>
+                                <th class="p-4">Impact</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-700" id="activity-rows">
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="p-4">Sep 28</td>
+                                <td class="p-4 font-medium text-white">Sunday Long Run</td>
+                                <td class="p-4">22.5 km</td>
+                                <td class="p-4">5:15 /km</td>
+                                <td class="p-4 text-emerald-400">Volume Score +2.5%</td>
+                            </tr>
+                            <tr class="hover:bg-slate-700/30 transition-colors">
+                                <td class="p-4">Sep 26</td>
+                                <td class="p-4 font-medium text-white">Tempo Intervals</td>
+                                <td class="p-4">10.0 km</td>
+                                <td class="p-4">4:40 /km</td>
+                                <td class="p-4 text-yellow-400">High HR Drift</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- NEW: Biometrics & HR Analysis Section -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- HR Zones (Karvonen) -->
+                    <div class="bg-dark-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider">Training Zones
+                                (Karvonen)</h3>
+                            <span class="text-xs text-slate-500">Based on HRmax <span id="disp-max">--</span> / Rest
+                                <span id="disp-rest">--</span></span>
+                        </div>
+                        <div class="space-y-4" id="hr-zones-container">
+                            <!-- Populated by JS -->
+                            <div class="text-center text-slate-500 text-sm py-4">Sync data to calculate zones</div>
+                        </div>
+                    </div>
+
+                    <!-- Physiology & Weight -->
+                    <div class="space-y-6">
+                        <!-- Weight Card -->
+                        <div
+                            class="bg-dark-800 rounded-2xl p-6 border border-slate-700 shadow-xl flex items-center justify-between">
+                            <div>
+                                <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Body
+                                    Composition</h3>
+                                <div class="text-2xl font-bold text-white"><span id="metric-weight">--</span> kg</div>
+                                <div class="text-xs text-emerald-400">Optimal Race Weight Range</div>
+                            </div>
+                            <div class="h-16 w-32 relative">
+                                <!-- Sparkline placeholder -->
+                                <svg class="w-full h-full text-brand-500" stroke="currentColor" fill="none"
+                                    viewBox="0 0 100 40">
+                                    <path stroke-width="2" d="M0 35 Q 25 38 50 20 T 100 25"></path>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Efficiency / Drift -->
+                        <div class="bg-dark-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
+                            <h3 class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-4">Metabolic
+                                Efficiency</h3>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="text-sm text-slate-300 mb-1">Cardiac Drift</div>
+                                    <div class="text-xl font-bold text-emerald-400">2.1% <span
+                                            class="text-xs text-slate-500 font-normal">(Excellent)</span></div>
+                                </div>
+                                <div class="w-px h-10 bg-slate-700"></div>
+                                <div class="text-right">
+                                    <div class="text-sm text-slate-300 mb-1">Pace/HR Index</div>
+                                    <div class="text-xl font-bold text-white">1.34</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Toast Notification (Hidden by default) -->
+        <div id="toast"
+            class="fixed top-24 right-8 bg-dark-800 border-l-4 border-green-500 text-white p-4 rounded shadow-2xl transform translate-x-full transition-transform duration-300 z-50 flex items-center gap-4 max-w-sm">
+            <div class="p-2 bg-green-500/20 rounded-full text-green-400">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <h4 class="font-bold text-sm">Session Completed!</h4>
+                <p class="text-xs text-slate-300">Great job staying consistent. Shape +2.</p>
+            </div>
+        </div>
+
+        <!-- Chat Widget -->
+        <div class="fixed bottom-8 right-8 z-50">
+            <!-- Chat Window (Naturally hidden) -->
+            <div id="chat-window"
+                class="hidden w-96 h-[500px] bg-dark-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden mb-4 transition-all transform origin-bottom-right scale-95 opacity-0">
+                <!-- Header -->
+                <div class="bg-dark-800 p-4 border-b border-slate-700 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span class="font-bold text-sm">Marathon Coach</span>
+                    </div>
+                    <button onclick="toggleChat()" class="text-slate-400 hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Messages -->
+                <div id="messages" class="flex-1 p-4 overflow-y-auto space-y-4 bg-dark-900/95">
+                    <!-- Intro Message -->
+                    <div class="flex gap-3">
+                        <div
+                            class="w-8 h-8 rounded-full bg-brand-600 flex-shrink-0 flex items-center justify-center text-xs font-bold">
+                            AI</div>
+                        <div
+                            class="bg-dark-800 border border-slate-700 rounded-2xl rounded-tl-sm p-3 text-sm text-slate-200 shadow-sm max-w-[85%]">
+                            Hi Anna! Your readiness score is 94 today. Ready for your thresholds?
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input -->
+                <div class="p-4 bg-dark-800 border-t border-slate-700">
+                    <form onsubmit="handleChatSubmit(event)" class="relative">
+                        <input type="text" id="chat-input"
+                            class="w-full bg-dark-900 border border-slate-600 rounded-xl px-4 py-3 pr-12 text-sm text-white focus:outline-none focus:border-brand-500 placeholder-slate-500"
+                            placeholder="Type a message..." autocomplete="off">
+                        <button type="submit" class="absolute right-2 top-2 p-1 text-brand-500 hover:text-brand-400">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Toggle Button -->
+            <button onclick="toggleChat()" id="chat-toggle-btn"
+                class="w-14 h-14 bg-brand-600 hover:bg-brand-500 text-white rounded-full shadow-lg shadow-brand-600/30 flex items-center justify-center transition-transform hover:scale-105">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                    </path>
+                </svg>
+            </button>
+        </div>
+
+    </main>
+
+    <!-- ONBOARDING MODAL -->
+    <div id="onboarding-modal"
+        class="fixed inset-0 bg-dark-900/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div
+            class="bg-dark-800 rounded-3xl p-8 max-w-lg w-full border border-slate-700 shadow-2xl relative overflow-hidden">
+            <!-- Decorative BG -->
+            <div
+                class="absolute top-0 right-0 p-12 opacity-10 bg-brand-500 blur-3xl rounded-full translate-x-12 -translate-y-12">
+            </div>
+
+            <div class="relative z-10">
+                <div class="w-12 h-12 bg-brand-500/20 text-brand-400 rounded-2xl flex items-center justify-center mb-6">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+
+                <h2 class="text-3xl font-bold text-white mb-2">Definiere dein Ziel.</h2>
+                <p class="text-slate-400 mb-8">Erzähl uns von deinem nächsten Marathon. Wir analysieren deine Form und
+                    erstellen einen adaptiven Trainingsplan.</p>
+
+                <form id="onboarding-form" class="space-y-6" onsubmit="handleOnboarding(event)">
+                    <!-- Marathon Goal Section (PROMINENT) -->
+                    <div class="bg-brand-900/20 border border-brand-500/30 rounded-xl p-4">
+                        <h3 class="text-brand-400 text-sm font-bold mb-4 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z">
+                                </path>
+                            </svg>
+                            Dein Marathonziel
+                        </h3>
+                        <div>
+                            <label
+                                class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Wettkampf</label>
+                            <input type="text" id="race-name" value="Berlin Marathon 2026"
+                                class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all placeholder-slate-600">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Wettkampf-Datum</label>
+                                <input type="date" id="race-date" value="2026-09-27" name="race-date"
+                                    class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Zielzeit
+                                    (h:mm:ss)</label>
+                                <input type="text" id="race-goal" value="3:59:00" name="race-goal" placeholder="3:59:00"
+                                    class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all placeholder-slate-600">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Biometric Inputs -->
+                    <div class="pt-4 border-t border-slate-800">
+                        <h3 class="text-white text-sm font-bold mb-4">Physiological Profile</h3>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">HR Max</label>
+                                <input name="hf-max" type="number" value="195"
+                                    class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-center focus:outline-none focus:border-emerald-500 transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">HR Rest</label>
+                                <input name="hf-rest" type="number" value="55"
+                                    class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-center focus:outline-none focus:border-emerald-500 transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Weight
+                                    (kg)</label>
+                                <input name="weight" type="number" value="72"
+                                    class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-center focus:outline-none focus:border-emerald-500 transition-colors">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Benchmark Run (Calibration) -->
+                    <div class="pt-4 border-t border-slate-800">
+                        <h3 class="text-white text-sm font-bold mb-2">Referenzlauf (Kalibrierung)</h3>
+                        <p class="text-xs text-slate-500 mb-4">Gib einen aktuellen Wettkampf oder Testlauf an, um deine
+                            Ausgangsform zu berechnen.</p>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Distanz</label>
+                                <select name="benchmark-distance"
+                                    class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-colors appearance-none cursor-pointer">
+                                    <option value="5">5 km</option>
+                                    <option value="10" selected>10 km</option>
+                                    <option value="21.0975">Halbmarathon</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Zeit
+                                    (mm:ss)</label>
+                                <input name="benchmark-time" type="text" value="48:30" placeholder="48:30"
+                                    class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-center focus:outline-none focus:border-emerald-500 transition-colors">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase text-slate-500 mb-1">Datum</label>
+                                <input name="benchmark-date" type="date" value="2026-01-05"
+                                    class="w-full bg-dark-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-colors">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-brand-500/20 hover:shadow-brand-500/40 transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                        <span>Generate Adaptive Plan</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </button>
+
+                    <p class="text-center text-xs text-slate-500">
+                        Analyzing 42 past activities from Strava...
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
 </html>
